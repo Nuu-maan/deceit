@@ -1,40 +1,49 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const { EMBED_COLOR } = require('../../constants');
-
-const bannerEmbed = new EmbedBuilder().setColor(EMBED_COLOR);
-const errorEmbed = new EmbedBuilder().setColor(EMBED_COLOR);
 
 module.exports = {
   name: 'banner',
-  aliases: [],
-  description: "Shows the user's banner",
+  description: "Shows the user's banner in different formats with download links",
   async execute(message) {
-    // Check if a user is mentioned
-    let user = message.mentions.users.first();
+    let user = message.mentions.users.first() || message.author;
 
-    // If no user is mentioned, use the message author
-    if (!user) {
-      user = message.author;
-    }
-
-    // Fetch the user's banner URL
     try {
-      const userData = await message.client.users.fetch(user.id);
-      const userr = await userData.fetch();
-      const bannerURL = userr.bannerURL({ dynamic: true, size: 1024 });
+      const userData = await message.client.users.fetch(user.id, { force: true });
+      const bannerURL = userData.bannerURL({ dynamic: true, size: 1024 });
 
       if (bannerURL) {
-        bannerEmbed.setTitle(`${user.username}'s Banner`).setImage(bannerURL);
-        message.channel.send({ embeds: [bannerEmbed] });
+        const bannerEmbed = new EmbedBuilder()
+          .setColor(EMBED_COLOR)
+          .setTitle(`${user.username}'s Banner`)
+          .setImage(bannerURL);
+
+        const row = new ActionRowBuilder()
+          .addComponents(
+            new ButtonBuilder()
+              .setLabel('PNG')
+              .setStyle(ButtonStyle.Link)
+              .setURL(userData.bannerURL({ format: 'png', dynamic: true, size: 1024 })),
+            new ButtonBuilder()
+              .setLabel('JPG')
+              .setStyle(ButtonStyle.Link)
+              .setURL(userData.bannerURL({ format: 'jpg', size: 1024 })),
+            new ButtonBuilder()
+              .setLabel('WEBP')
+              .setStyle(ButtonStyle.Link)
+              .setURL(userData.bannerURL({ format: 'webp', size: 1024 }))
+          );
+
+        await message.channel.send({ embeds: [bannerEmbed], components: [row] });
       } else {
-        errorEmbed.setDescription(`\`${user.username}\` does not have a banner`);
-        message.channel.send({ embeds: [errorEmbed] });
+        const errorEmbed = new EmbedBuilder()
+          .setColor(EMBED_COLOR)
+          .setDescription(`\`${user.username}\` does not have a banner`);
+        await message.channel.send({ embeds: [errorEmbed] });
       }
 
-      // Send the embed
     } catch (error) {
       console.error('Error fetching banner:', error);
       message.reply('There was an error trying to fetch the banner.');
     }
-  },
+  }
 };

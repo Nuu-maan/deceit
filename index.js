@@ -10,7 +10,7 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent, // For accessing message content
+    GatewayIntentBits.MessageContent, 
     GatewayIntentBits.GuildPresences, // Optional, for tracking presence updates
     GatewayIntentBits.GuildMembers, // For managing members
   ],

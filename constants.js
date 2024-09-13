@@ -1,6 +1,6 @@
 const PREFIX = ',,';
-const DELETE_AFTER = 3000;
-const BOT_ADMINS = ['1247843122160074782'];
+const DELETE_AFTER = 5000;
+const BOT_ADMINS = ['1247843122160074782','877082451850178642'];
 const EMBED_COLOR = '#b3e07f';
 
 module.exports = {
