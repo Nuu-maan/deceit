@@ -13,7 +13,7 @@ function createEmbed(
     .setColor(color)
     .setTitle(title)
     .setDescription(description)
-    .addFields(
+    .setFields(
       { name: 'aliases', value: `${aliases}`, inline: true },
       { name: 'permission', value: `\`${permission}\``, inline: true },
       { name: 'usage', value: `\`\`\`${PREFIX}${usage}\`\`\``, inline: false },

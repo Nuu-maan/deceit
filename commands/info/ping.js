@@ -18,7 +18,7 @@ module.exports = {
     const pingEmbed = new EmbedBuilder()
       .setColor(EMBED_COLOR)
       .setTitle("🏓 Pong! Here's your ping info:")
-      .addFields(
+      .setFields(
         { name: 'Latency', value: `\`${latency.toFixed(2)}ms\``, inline: true },
         { name: 'API Latency', value: `\`${apiLatency}ms\``, inline: true },
         {
