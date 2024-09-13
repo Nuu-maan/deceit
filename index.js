@@ -3,14 +3,14 @@ require('dotenv').config();
 const { Client, GatewayIntentBits, Events, ActivityType } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { PREFIX } = require('./constants');
+const { PREFIX, BOT_ADMINS } = require('./constants');
 
 // Create a new client instance
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent, 
+    GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildPresences, // Optional, for tracking presence updates
     GatewayIntentBits.GuildMembers, // For managing members
   ],
@@ -44,7 +44,7 @@ client.once(Events.ClientReady, () => {
   client.user.setPresence({
     activities: [
       {
-        name: '.gg/side', // Set the bot's activity
+        name: ',,help', // Set the bot's activity
         type: ActivityType.Playing, // Or use ActivityType.Streaming, ActivityType.Listening, ActivityType.Watching as needed
       },
     ],
