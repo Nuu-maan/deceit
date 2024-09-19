@@ -1,13 +1,13 @@
 const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 const { createEmbed } = require('../../helpers/commandInfoEmbed');
-const { EMBED_COLOR } = require('../../constants');
+const { EMBED_COLOR, EMOJIS } = require('../../constants');
 
 const infoEmbed = createEmbed(
-  'ban',
-  'Bans a user from the server.',
+  `${EMOJIS.INFO} Ban`,
+  `${EMOJIS.INFO} Bans a user from the server.`,
   'ban',
   'BAN_MEMBERS',
-  'ban @user <reason>',
+  'ban @user <reason> or ban <user_id> <reason>',
 );
 
 const errorEmbed = new EmbedBuilder().setColor(EMBED_COLOR);
@@ -19,12 +19,13 @@ module.exports = {
   aliases: ['banish'],
 
   async execute(message, args) {
-    const memberToBan = message.mentions.members.first();
+    // Support for banning by mention or user ID
+    const memberToBan = message.mentions.members.first() || await message.guild.members.fetch(args[0]).catch(() => null);
     const reason = args.slice(1).join(' ') || 'No reason provided';
 
     if (!memberToBan) {
       infoEmbed.setFooter({
-        text: 'Mention a user to ban.',
+        text: `Mention a user or provide their user ID to ban.`,
         iconURL: message.guild.iconURL({ dynamic: true }),
       });
       return message.channel.send({ embeds: [infoEmbed] });
@@ -32,7 +33,7 @@ module.exports = {
 
     if (!message.member.permissions.has(PermissionsBitField.Flags.BanMembers)) {
       errorEmbed.setDescription(
-        'You need the `BAN_MEMBERS` permission to use this command.',
+        `${EMOJIS.ERROR} You need the \`BAN_MEMBERS\` permission to use this command.`,
       );
       return message.channel.send({ embeds: [errorEmbed] });
     }
@@ -43,7 +44,7 @@ module.exports = {
       )
     ) {
       errorEmbed.setDescription(
-        'I don’t have the `BAN_MEMBERS` permission to ban this user.',
+        `${EMOJIS.ERROR} I don’t have the \`BAN_MEMBERS\` permission to ban this user.`,
       );
       return message.channel.send({ embeds: [errorEmbed] });
     }
@@ -54,7 +55,7 @@ module.exports = {
       ) <= 0
     ) {
       errorEmbed.setDescription(
-        'You cannot ban a member with a higher or equal role.',
+        `${EMOJIS.ERROR} You cannot ban a member with a higher or equal role.`,
       );
       return message.channel.send({ embeds: [errorEmbed] });
     }
@@ -65,7 +66,7 @@ module.exports = {
       ) <= 0
     ) {
       errorEmbed.setDescription(
-        'I cannot ban this member due to role hierarchy.',
+        `${EMOJIS.ERROR} I cannot ban this member due to role hierarchy.`,
       );
       return message.channel.send({ embeds: [errorEmbed] });
     }
@@ -74,14 +75,14 @@ module.exports = {
       await memberToBan.ban({ reason });
 
       successEmbed
-        .setTitle('🔨 User Banned')
+        .setTitle(`${EMOJIS.BOLT} User Banned`)
         .setDescription(
           `\`${memberToBan.user.tag}\` has been banned from the server.`,
         )
         .setFields(
-          { name: 'Reason', value: `\`\`\`${reason}\`\`\``, inline: false },
-          { name: 'Banned By', value: `${message.author}`, inline: true },
-          { name: 'User ID', value: `${memberToBan.id}`, inline: true },
+          { name: `${EMOJIS.INFO} Reason`, value: `\`\`\`${reason}\`\`\``, inline: false },
+          { name: `${EMOJIS.USERS} Banned By`, value: `${message.author}`, inline: true },
+          { name: `${EMOJIS.USER} User ID`, value: `${memberToBan.id}`, inline: true },
         )
         .setFooter({
           text: `Ban executed successfully by ${message.author.tag}`,
@@ -89,14 +90,14 @@ module.exports = {
         })
         .setTimestamp();
 
-      const sentMessage = await message.channel.send({
+      await message.channel.send({
         embeds: [successEmbed],
       });
 
       message.delete().catch(() => {});
     } catch (error) {
       console.error(error);
-      message.reply({ content: 'There was an error trying to ban the user.' });
+      message.reply({ content: `${EMOJIS.ERROR} There was an error trying to ban the user.` });
     }
   },
 };
