@@ -1,3 +1,5 @@
+// index.js
+
 require('dotenv').config();
 
 const { Client, GatewayIntentBits, Events, ActivityType } = require('discord.js');
@@ -83,7 +85,7 @@ client.on(Events.MessageCreate, async (message) => {
       await command.execute(message, args);
     } catch (error) {
       console.error(error);
-      message.reply('There was an error trying to execute that command.'); // Use reply here for errors
+      message.reply('There was an error trying to execute that command.'); 
     }
   }
 });
