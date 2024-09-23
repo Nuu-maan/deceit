@@ -16,7 +16,7 @@ module.exports = {
         'Set a reminder for yourself with a specific duration and reason. Supports seconds (s), minutes (m), hours (h), and days (d).',
         'alarm',
         'None',
-        `${PREFIX}remindme <time> <reason>\n${PREFIX}alarm <time> <reason>`
+        `remindme <time> <reason>\n${PREFIX}alarm <time> <reason>`
       );
       return message.channel.send({ embeds: [infoEmbed] });
     }
