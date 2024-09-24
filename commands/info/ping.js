@@ -6,17 +6,14 @@ module.exports = {
   name: 'ping',
   description: 'Replies with Pong and latency information in a cute and advanced embed!',
   async execute(message) {
-    const startTime = performance.now(); // Start timing
+    const startTime = performance.now();
 
-    // Send a message to start the ping calculation
     const sentMessage = await message.channel.send("🏓 Pong! Calculating ping...");
 
-    // Calculate the latency
-    const latency = performance.now() - startTime; // Calculate message latency
-    const apiLatency = message.client.ws.ping || 'Not connected'; // Get API latency
-    const uptime = Math.round(message.client.uptime / 1000); // in seconds
+    const latency = performance.now() - startTime;
+    const apiLatency = message.client.ws.ping || 'Not connected';
+    const uptime = Math.round(message.client.uptime / 1000);
 
-    // Create the embed with the ping information
     const pingEmbed = new EmbedBuilder()
       .setColor(EMBED_COLOR)
       .setTitle("🏓 Pong! Here's your ping info:")
@@ -35,7 +32,6 @@ module.exports = {
       })
       .setTimestamp();
 
-    // Delete the initial ping message and send the embed
     await sentMessage.delete();
     await message.channel.send({ embeds: [pingEmbed] });
   },

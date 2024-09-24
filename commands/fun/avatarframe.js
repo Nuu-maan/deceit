@@ -4,11 +4,10 @@ const fs = require('fs');
 const path = require('path');
 const { EMBED_COLOR, EMOJIS } = require('../../constants');
 
-// Update frame paths to PNG if converted
 const frames = {
-  'holiday': path.resolve(__dirname, '../../assets/frames/holiday.png'), // Change to PNG
-  'neon': path.resolve(__dirname, '../../assets/frames/neon.png'),       // Change to PNG
-  'minimalist': path.resolve(__dirname, '../../assets/frames/minimalist.png'), // Change to PNG
+  'holiday': path.resolve(__dirname, '../../assets/frames/holiday.png'), 
+  'neon': path.resolve(__dirname, '../../assets/frames/neon.png'),       
+  'minimalist': path.resolve(__dirname, '../../assets/frames/minimalist.png'), 
 };
 
 module.exports = {
@@ -27,30 +26,23 @@ module.exports = {
     }
 
     try {
-      // Log the frame path for debugging
       console.log(`Loading frame from: ${frames[frameType]}`);
 
-      // Fetch the user's avatar
       const avatarUrl = user.displayAvatarURL({ format: 'png', size: 512 });
       const avatarImage = await loadImage(avatarUrl);
       console.log(`Avatar loaded: ${avatarUrl}`);
 
-      // Read the chosen frame image into a buffer
       const frameBuffer = fs.readFileSync(frames[frameType]);
       const frameImage = await loadImage(frameBuffer);
       console.log(`Frame image loaded: ${frames[frameType]}`);
 
-      // Create a canvas
       const canvas = createCanvas(512, 512);
       const ctx = canvas.getContext('2d');
 
-      // Draw the avatar on the canvas
       ctx.drawImage(avatarImage, 0, 0, 512, 512);
 
-      // Draw the frame on top
       ctx.drawImage(frameImage, 0, 0, 512, 512);
 
-      // Create attachment and send the result
       const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'avatar_with_frame.png' }); // Change to PNG
       const successEmbed = new EmbedBuilder()
         .setColor(EMBED_COLOR)

@@ -2,8 +2,7 @@ const { EmbedBuilder } = require('discord.js');
 const { BOT_ADMINS, EMBED_COLOR, EMOJIS } = require('../../constants');
 const { createEmbed } = require('../../helpers/commandInfoEmbed');
 const util = require('util');
-const db = require('../../database/database'); // Import your database
-
+const db = require('../../database/database');
 module.exports = {
   name: 'eval',
   description: 'Evaluates JavaScript code',
@@ -31,7 +30,6 @@ module.exports = {
 
     const code = args.join(' ');
 
-    // Handle specific commands to change or remove prefixes
     if (code.startsWith('db.run("UPDATE prefixes SET prefix =')) {
       const match = code.match(/SET prefix = '([^']+)' WHERE server_id = '([^']+)'/);
       if (match) {
@@ -59,7 +57,7 @@ module.exports = {
     }
 
     if (code.startsWith('db.run("DELETE FROM prefixes WHERE server_id =')) {
-      const serverIdMatch = code.match(/'([^']+)'/); // Extract server ID
+      const serverIdMatch = code.match(/'([^']+)'/); 
       if (serverIdMatch && serverIdMatch[1]) {
         const serverId = serverIdMatch[1];
 
@@ -80,11 +78,10 @@ module.exports = {
             .setFooter({ text: `Requested by ${message.author.tag}`, iconURL: message.author.displayAvatarURL() });
           return message.reply({ embeds: [successEmbed] });
         });
-        return; // Exit after handling the delete
+        return; 
       }
     }
 
-    // Evaluate other JavaScript code
     try {
       let evaled = await eval(code);
       if (typeof evaled !== 'string') evaled = util.inspect(evaled);

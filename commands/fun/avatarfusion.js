@@ -41,12 +41,10 @@ module.exports = {
             const img1 = await loadImage(convertedAvatar1);
             const img2 = await loadImage(convertedAvatar2);
 
-            // Randomize blending mode
             const randomBlendMode = BLEND_MODES[Math.floor(Math.random() * BLEND_MODES.length)];
             ctx.globalCompositeOperation = randomBlendMode;
             ctx.drawImage(img2, 0, 0, 512, 512);
 
-            // Overlay the first avatar with random rotation
             ctx.save();
             const randomRotation = Math.random() * 0.2 - 0.1;
             ctx.translate(256, 256);
@@ -54,22 +52,17 @@ module.exports = {
             ctx.drawImage(img1, -128, -128, 256, 256);
             ctx.restore();
 
-            // Add light/shadow effects for more depth
             ctx.globalAlpha = 0.2;
             ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
             ctx.fillRect(0, 0, 512, 512);
 
-            // Add filters for fun effects
             const randomFilter = FILTERS[Math.floor(Math.random() * FILTERS.length)];
             if (randomFilter === 'glitch') {
-                // Glitch effect: distort part of the image
                 ctx.drawImage(img1, 30, 20, 200, 100, 300, 400, 100, 200);
             } else if (randomFilter === 'pixelate') {
-                // Pixelate: resize to a lower resolution then scale back up
                 ctx.drawImage(img1, 0, 0, 64, 64);
                 ctx.drawImage(canvas, 0, 0, 512, 512);
             } else if (randomFilter === 'posterize') {
-                // Posterize: add a posterization effect
                 ctx.filter = 'contrast(200%)';
                 ctx.drawImage(img1, 0, 0, 512, 512);
             }

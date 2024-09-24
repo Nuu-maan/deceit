@@ -2,10 +2,9 @@ require('dotenv').config();
 const { Client, GatewayIntentBits, Events, ActivityType, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { PREFIX, EMBED_COLOR, EMOJIS } = require('./constants'); // Corrected 'prefix' to 'PREFIX'
-const db = require('./database/database'); // Update to match the new path
+const { PREFIX, EMBED_COLOR, EMOJIS } = require('./constants'); 
+const db = require('./database/database'); 
 
-// Create a new client instance
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -16,7 +15,6 @@ const client = new Client({
   ],
 });
 
-// Load commands
 const commands = new Map();
 const loadCommands = (dir) => {
   const commandsPath = path.join(__dirname, 'commands', dir);
@@ -31,14 +29,12 @@ const loadCommands = (dir) => {
     });
 };
 
-// Load commands from subdirectories
 fs.readdirSync(path.join(__dirname, 'commands')).forEach((dir) => {
   if (fs.statSync(path.join(__dirname, 'commands', dir)).isDirectory()) {
     loadCommands(dir);
   }
 });
 
-// Event handler when the bot is ready
 client.once(Events.ClientReady, () => {
   console.log(`Logged in as ${client.user.tag}!`);
   client.user.setPresence({
@@ -54,21 +50,18 @@ client.once(Events.ClientReady, () => {
 
 client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) return;
-
-  // Check if the message is a direct mention of the bot
   if (message.mentions.has(client.user)) {
     const serverId = message.guild.id;
-    let customPrefix = 'null'; // Default to 'null' if no custom prefix is found
+    let customPrefix = 'null'; 
 
-    // Fetch the custom prefix from the database
     db.get('SELECT prefix FROM prefixes WHERE server_id = ?', [serverId], async (err, row) => {
       if (err) {
         console.error('Error fetching prefix:', err);
-        return; // Exit if there was an error
+        return; 
       }
       
       if (row) {
-        customPrefix = row.prefix; // Update customPrefix if found
+        customPrefix = row.prefix; 
       }
 
       const embed = new EmbedBuilder()
@@ -77,7 +70,7 @@ client.on(Events.MessageCreate, async (message) => {
         .setDescription(`Hey ${message.author}, thanks for pinging me!\n\nMy prefixes are: \`${PREFIX}\` & \`${customPrefix}\`\nServer ID: \`${message.guild.id}\`\nWebsite: [Visit my site](https://deceit.site)`)
         .setFooter({ 
           text: 'type ,,help for assistance!', 
-          iconURL: client.user.displayAvatarURL() // Use bot's profile picture
+          iconURL: client.user.displayAvatarURL()
         })
         .setTimestamp();
 
@@ -85,25 +78,23 @@ client.on(Events.MessageCreate, async (message) => {
     });
   }
 
-  // Command handling code
   const serverId = message.guild.id;
   let customPrefix = PREFIX;
 
-  // Fetch the custom prefix from the database
   db.get('SELECT prefix FROM prefixes WHERE server_id = ?', [serverId], async (err, row) => {
     if (err) {
       console.error('Error fetching prefix:', err);
-      return; // Exit if there was an error
+      return; 
     }
     
     if (row) {
-      customPrefix = row.prefix; // Update customPrefix if found
+      customPrefix = row.prefix; 
     }
 
     const prefixUsed = message.content.startsWith(PREFIX) ? PREFIX : 
                        message.content.startsWith(customPrefix) ? customPrefix : null;
 
-    if (!prefixUsed) return; // Exit if no valid prefix is used
+    if (!prefixUsed) return;
 
     const args = message.content.slice(prefixUsed.length).trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
@@ -121,5 +112,4 @@ client.on(Events.MessageCreate, async (message) => {
   });
 });
 
-// Log in to Discord with the app's token
 client.login(process.env.DISCORD_TOKEN);
