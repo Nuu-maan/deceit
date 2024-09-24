@@ -1,11 +1,9 @@
-// index.js
-
 require('dotenv').config();
-
-const { Client, GatewayIntentBits, Events, ActivityType } = require('discord.js');
+const { Client, GatewayIntentBits, Events, ActivityType, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { PREFIX, BOT_ADMINS } = require('./constants');
+const { PREFIX, EMBED_COLOR, EMOJIS } = require('./constants'); // Corrected 'prefix' to 'PREFIX'
+const db = require('./database/database'); // Update to match the new path
 
 // Create a new client instance
 const client = new Client({
@@ -13,8 +11,8 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildPresences, // Optional, for tracking presence updates
-    GatewayIntentBits.GuildMembers, // For managing members
+    GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.GuildMembers,
   ],
 });
 
@@ -46,48 +44,81 @@ client.once(Events.ClientReady, () => {
   client.user.setPresence({
     activities: [
       {
-        name: ',,help', // Set the bot's activity
-        type: ActivityType.Playing, // Or use ActivityType.Streaming, ActivityType.Listening, ActivityType.Watching as needed
+        name: ',,help',
+        type: ActivityType.Playing,
       },
     ],
-    status: 'online', // Options: 'online', 'idle', 'dnd', 'invisible'
+    status: 'online',
   });
 });
 
-// Event handler for incoming messages
 client.on(Events.MessageCreate, async (message) => {
-  if (message.author.bot) return; // Ignore bot messages
+  if (message.author.bot) return;
 
-  // Respond to mentions
+  // Check if the message is a direct mention of the bot
   if (message.mentions.has(client.user)) {
-    // Check if the message is a reply
-    if (message.reference) return;
+    const serverId = message.guild.id;
+    let customPrefix = 'null'; // Default to 'null' if no custom prefix is found
 
-    // Check if the message contains only the bot mention
-    const mentionPattern = new RegExp(`<@!?${message.client.user.id}>`);
-    if (mentionPattern.test(message.content.trim()) && !message.content.trim().match(/\s/)) {
-      return message.reply({ content: `prefixes: \`${PREFIX}\``, allowedMentions: { repliedUser: false } });
-    } else {
-      return;
-    }
+    // Fetch the custom prefix from the database
+    db.get('SELECT prefix FROM prefixes WHERE server_id = ?', [serverId], async (err, row) => {
+      if (err) {
+        console.error('Error fetching prefix:', err);
+        return; // Exit if there was an error
+      }
+      
+      if (row) {
+        customPrefix = row.prefix; // Update customPrefix if found
+      }
+
+      const embed = new EmbedBuilder()
+        .setColor(EMBED_COLOR)
+        .setTitle('Hello there!')
+        .setDescription(`Hey ${message.author}, thanks for pinging me!\n\nMy prefixes are: \`${PREFIX}\` & \`${customPrefix}\`\nServer ID: \`${message.guild.id}\`\nWebsite: [Visit my site](https://deceit.site)`)
+        .setFooter({ 
+          text: 'type ,,help for assistance!', 
+          iconURL: client.user.displayAvatarURL() // Use bot's profile picture
+        })
+        .setTimestamp();
+
+      return message.channel.send({ embeds: [embed] });
+    });
   }
 
-  // Ignore messages without the prefix
-  if (!message.content.startsWith(PREFIX)) return;
+  // Command handling code
+  const serverId = message.guild.id;
+  let customPrefix = PREFIX;
 
-  const args = message.content.slice(PREFIX.length).trim().split(/ +/);
-  const commandName = args.shift().toLowerCase();
-
-  const command = commands.get(commandName);
-
-  if (command) {
-    try {
-      await command.execute(message, args);
-    } catch (error) {
-      console.error(error);
-      message.reply('There was an error trying to execute that command.'); 
+  // Fetch the custom prefix from the database
+  db.get('SELECT prefix FROM prefixes WHERE server_id = ?', [serverId], async (err, row) => {
+    if (err) {
+      console.error('Error fetching prefix:', err);
+      return; // Exit if there was an error
     }
-  }
+    
+    if (row) {
+      customPrefix = row.prefix; // Update customPrefix if found
+    }
+
+    const prefixUsed = message.content.startsWith(PREFIX) ? PREFIX : 
+                       message.content.startsWith(customPrefix) ? customPrefix : null;
+
+    if (!prefixUsed) return; // Exit if no valid prefix is used
+
+    const args = message.content.slice(prefixUsed.length).trim().split(/ +/);
+    const commandName = args.shift().toLowerCase();
+
+    const command = commands.get(commandName);
+
+    if (command) {
+      try {
+        await command.execute(message, args);
+      } catch (error) {
+        console.error(error);
+        message.reply('There was an error trying to execute that command.');
+      }
+    }
+  });
 });
 
 // Log in to Discord with the app's token
