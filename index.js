@@ -1,8 +1,8 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, Events, ActivityType, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, Events, ActivityType, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { PREFIX, EMBED_COLOR, EMOJIS } = require('./constants'); 
+const { PREFIX, EMBED_COLOR } = require('./constants'); 
 const db = require('./database/database'); 
 
 const client = new Client({
@@ -16,6 +16,7 @@ const client = new Client({
 });
 
 const commands = new Map();
+
 const loadCommands = (dir) => {
   const commandsPath = path.join(__dirname, 'commands', dir);
   fs.readdirSync(commandsPath)
@@ -50,7 +51,9 @@ client.once(Events.ClientReady, () => {
 
 client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) return;
-  if (message.mentions.has(client.user)) {
+
+  // Check if the message is a reply
+  if (message.mentions.has(client.user) && !message.reference) {
     const serverId = message.guild.id;
     let customPrefix = 'null'; 
 
@@ -69,12 +72,29 @@ client.on(Events.MessageCreate, async (message) => {
         .setTitle('Hello there!')
         .setDescription(`Hey ${message.author}, thanks for pinging me!\n\nMy prefixes are: \`${PREFIX}\` & \`${customPrefix}\`\nServer ID: \`${message.guild.id}\`\nWebsite: [Visit my site](https://deceit.site)`)
         .setFooter({ 
-          text: 'type ,,help for assistance!', 
+          text: 'Type ,,help for assistance!', 
           iconURL: client.user.displayAvatarURL()
         })
         .setTimestamp();
 
-      return message.channel.send({ embeds: [embed] });
+      // Create buttons
+      const buttonRow = new ActionRowBuilder()
+        .addComponents(
+          new ButtonBuilder()
+            .setLabel('Support Server')
+            .setURL('https://discord.gg/MscCWUP8') // Replace with your support server link
+            .setStyle(ButtonStyle.Link),
+          new ButtonBuilder()
+            .setLabel('Visit Site')
+            .setURL('https://deceit.site') // Replace with your site link
+            .setStyle(ButtonStyle.Link),
+          new ButtonBuilder()
+            .setLabel('Invite Bot')
+            .setURL('https://discord.com/oauth2/authorize?client_id=1272138809110433853&permissions=137941486839&scope=bot') // Replace with your bot invite link
+            .setStyle(ButtonStyle.Link)
+        );
+
+      return message.channel.send({ embeds: [embed], components: [buttonRow] }); // Send embed with buttons
     });
   }
 
@@ -112,4 +132,4 @@ client.on(Events.MessageCreate, async (message) => {
   });
 });
 
-client.login(process.env.DISCORD_TOKEN);
+client.login(process.env.DISCORD_TOKEN)
