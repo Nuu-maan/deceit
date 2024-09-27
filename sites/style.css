@@ -1,0 +1,137 @@
+body {
+    background: linear-gradient(135deg, #f0f4c3, #c8e6c9); /* Soft green gradient */
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    min-height: 100vh; /* Ensure full height */
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center the header content */
+    padding: 20px;
+    background-color: #f9fbe7; /* Soft light background for the header */
+    border-bottom: 2px solid #e0e0e0; /* Subtle border for separation */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+    border-radius: 0 0 20px 20px; /* Rounded bottom corners */
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Space between logo and title */
+}
+
+.logo {
+    width: 60px; /* Adjust logo size */
+    height: 60px; /* Adjust logo size */
+    border-radius: 50%; /* Make logo rounded */
+}
+
+.header-title {
+    color: #388e3c; /* Darker green for the title */
+    font-size: 2em; /* Title size */
+    font-family: 'Arial', sans-serif; /* Font style */
+}
+
+.search-container {
+    display: flex;
+    justify-content: center; /* Center the search bar */
+    margin: 20px 0; /* Margin for spacing */
+}
+
+.search-bar {
+    width: 80%; /* Adjust search bar width */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 20px; /* Rounded corners */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    font-size: 1em; /* Font size */
+    transition: border 0.3s; /* Smooth transition */
+}
+
+.search-bar:focus {
+    outline: none; /* Removes outline on focus */
+    border-color: #388e3c; /* Change border color on focus */
+}
+
+.container {
+    margin-top: 20px; /* Space between header and container */
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 90%;
+    max-width: 800px; /* Wider container */
+}
+
+h1 {
+    color: #388e3c; /* Darker green */
+    font-size: 2.5em;
+}
+
+.server-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Space between server boxes */
+}
+
+.server-card {
+    background: #e8f5e9; /* Light green background */
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s, box-shadow 0.2s; /* Animation effect */
+}
+
+.server-card:hover {
+    transform: scale(1.02); /* Slightly enlarge on hover */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25); /* Deepen shadow */
+}
+
+.server-link {
+    text-decoration: none;
+    color: #2e7d32; /* Darker green color for links */
+}
+
+.server-link h2 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.server-link p {
+    margin: 5px 0;
+}
+
+.back-button, .view-button {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: background 0.3s;
+    font-size: 1em;
+    text-decoration: none;
+    color: white;
+}
+
+.back-button {
+    background: #388e3c;
+}
+
+.back-button:hover {
+    background: #2e7d32;
+}
+
+.view-button {
+    background: #7cb342; /* Different shade for buttons */
+}
+
+.view-button:hover {
+    background: #5e9c30;
+}

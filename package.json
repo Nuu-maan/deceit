@@ -22,6 +22,7 @@
     "jimp": "^1.6.0",
     "lavalink.js": "^0.1.1",
     "ms": "^2.1.3",
+    "node-cron": "^3.0.3",
     "node-fetch": "^3.3.2",
     "sharp": "^0.33.5",
     "spotify-web-api-node": "^5.0.2",

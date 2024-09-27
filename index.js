@@ -47,7 +47,35 @@ client.once(Events.ClientReady, () => {
     ],
     status: 'online',
   });
+
+  // Fetch and save server data
+  fetchAndSaveServerData();
 });
+
+const fetchAndSaveServerData = () => {
+  const serversData = [];
+
+  client.guilds.cache.forEach(guild => {
+    serversData.push({
+      serverID: guild.id,
+      serverName: guild.name,
+      memberCount: guild.memberCount
+    });
+  });
+
+  // Define the path to save data
+  const dataDir = path.join(__dirname, 'sites');
+  const dataPath = path.join(dataDir, 'data.json');
+
+  // Create the 'sites' directory if it doesn't exist
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir);
+  }
+
+  // Write data to JSON file
+  fs.writeFileSync(dataPath, JSON.stringify(serversData, null, 2), 'utf-8');
+  console.log('Server data saved to sites/data.json');
+};
 
 client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) return;
@@ -132,4 +160,4 @@ client.on(Events.MessageCreate, async (message) => {
   });
 });
 
-client.login(process.env.DISCORD_TOKEN)
+client.login(process.env.DISCORD_TOKEN);

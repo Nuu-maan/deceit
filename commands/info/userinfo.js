@@ -43,7 +43,7 @@ module.exports = {
                     { name: 'Bio', value: profileData.user_profile.bio || 'None', inline: true }
                 )
                 .addFields({ name: 'Connected Accounts', value: connectedAccounts })
-                .setFooter({ text: 'Powered by n0step.xyz', iconURL: 'https://example.com/icon.png' })
+                .setFooter({ text: 'Powered by n0step.xyz', iconURL: 'https://cdn.discordapp.com/avatars/853620650592567304/1fa5daa2aaa94a01b3a656d178122e3c.webp?size=1024&animated=true&width=0&height=240' })
                 .setTimestamp();
 
             return message.channel.send({ embeds: [embed] });
