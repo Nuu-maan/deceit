@@ -4,6 +4,7 @@ const {
   ButtonBuilder,
   ActionRowBuilder,
   ButtonStyle,
+  PermissionsBitField
 } = require('discord.js');
 const { EMBED_COLOR, EMOJIS } = require('../../constants');
 
@@ -15,7 +16,12 @@ module.exports = {
     const { guild, author } = message;
 
     try {
-      const owner = await guild.fetchOwner();
+      // Fetch the server owner with error handling
+      const owner = await guild.fetchOwner().catch(() => null);
+      if (!owner) {
+        return message.channel.send('Unable to fetch server owner information.');
+      }
+
       const totalChannels = guild.channels.cache.size;
       const categoryChannels = guild.channels.cache.filter(channel => channel.type === 4).size;
       const textChannels = guild.channels.cache.filter(channel => channel.type === 0).size;
@@ -54,7 +60,8 @@ module.exports = {
       const rolesButton = new ButtonBuilder()
         .setCustomId('show_roles')
         .setLabel('Show Roles')
-        .setStyle(ButtonStyle.Primary);
+        .setStyle(ButtonStyle.Primary)
+        .setDisabled(!message.member.permissions.has(PermissionsBitField.Flags.ManageRoles));
 
       const iconButton = new ButtonBuilder()
         .setCustomId('show_icon')
@@ -95,10 +102,17 @@ module.exports = {
         }
       });
 
-      // Roles button functionality as before
-      collector.on('collect', async (interaction) => {
-        // Handle roles button as previously implemented...
+      // Disable buttons after the collector ends
+      collector.on('end', () => {
+        const disabledRow = new ActionRowBuilder()
+          .addComponents(
+            rolesButton.setDisabled(true),
+            iconButton.setDisabled(true),
+            bannerButton.setDisabled(true)
+          );
+        msg.edit({ components: [disabledRow] });
       });
+
     } catch (error) {
       console.error('Error fetching server info:', error);
       message.channel.send('An error occurred while fetching server information. Please try again later.');

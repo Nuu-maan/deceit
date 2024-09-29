@@ -28,7 +28,7 @@ module.exports = {
     // Check for valid time
     if (!reminderDuration || reminderDuration < 10000 || reminderDuration > 604800000) { // 10s to 7d
       return message.channel.send({
-        content: `${EMOJIS.ERROR} Invalid time format! Please use a format like '10s', '10m', '1h', '1d' etc. Minimum duration is 10 seconds and maximum is 7 days.`,
+        content: `${EMOJIS.ERROR} Invalid time format! Please use a format like '10s', '10m', '1h', '1d'. Minimum duration is 10 seconds and maximum is 7 days.`,
         deleteAfter: 5000,
       });
     }
@@ -88,11 +88,13 @@ module.exports = {
           components: [],
         });
       } catch (err) {
+        console.error(`Failed to send reminder to ${message.author.tag}: ${err.message}`);
         message.channel.send(`${EMOJIS.ERROR} I was unable to send you a DM. Please check your privacy settings.`);
       }
       
       // Remove the reminder from the user's list after it's done
-      userReminderList.splice(userReminderList.indexOf({ reminderMessage, timeout }), 1);
+      const reminderIndex = userReminderList.findIndex(reminder => reminder.reminderMessage.id === reminderMessage.id);
+      if (reminderIndex > -1) userReminderList.splice(reminderIndex, 1);
     }, reminderDuration);
 
     // Handle the button interaction for canceling the reminder
@@ -105,12 +107,16 @@ module.exports = {
         content: `${EMOJIS.TRASH} Reminder has been canceled.`,
         components: [],
       });
-      userReminderList.splice(userReminderList.indexOf({ reminderMessage, timeout }), 1);
+      const reminderIndex = userReminderList.findIndex(reminder => reminder.reminderMessage.id === reminderMessage.id);
+      if (reminderIndex > -1) userReminderList.splice(reminderIndex, 1);
     });
 
     collector.on('end', (collected, reason) => {
       if (reason === 'time') {
-        reminderMessage.edit({ components: [] });
+        reminderMessage.edit({
+          content: `${EMOJIS.BELL} Reminder is now inactive.`,
+          components: [], // Remove buttons
+        });
       }
     });
   },

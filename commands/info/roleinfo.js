@@ -37,17 +37,14 @@ module.exports = {
     const roleInfoEmbed = new EmbedBuilder()
       .setColor(EMBED_COLOR) // Use embed color from constants
       .setTitle(`Role: ${role.name}`)
-      .setDescription(`Here is the information for the role **${role.name}**.`)
       .addFields(
-        { name: `${EMOJIS.USERS} Members`, value: `${role.members.size}`, inline: true },
-        { name: `${EMOJIS.KEY} Role ID`, value: `${role.id}`, inline: true },
-        { name: `${EMOJIS.SETTINGS} Color`, value: `${role.hexColor}`, inline: true },
-        { name: `${EMOJIS.BOLT} Position`, value: `${role.position}`, inline: true },
-        { name: `${EMOJIS.HEART} Mentionable`, value: role.mentionable ? 'Yes' : 'No', inline: true },
-        { name: `${EMOJIS.STAR} Created At`, value: role.createdAt.toDateString(), inline: true },
-      )
-      .setFooter({ text: `Requested by ${message.author.tag}`, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
-      .setTimestamp();
+        { name: `${EMOJIS.USERS} | Members`, value: `${role.members.size}`, inline: true },
+        { name: `${EMOJIS.KEY} | Role ID`, value: `${role.id}`, inline: true },
+        { name: `${EMOJIS.SETTINGS} | Color`, value: `${role.hexColor}`, inline: true },
+        { name: `${EMOJIS.BOLT} | Position`, value: `${role.position}`, inline: true },
+        { name: `${EMOJIS.HEART} | Mentionable`, value: role.mentionable ? 'Yes' : 'No', inline: true },
+        { name: `${EMOJIS.STAR} | Created At`, value: role.createdAt.toDateString(), inline: true },
+      );
 
     // Add a button for role permissions (only for users with MANAGE_ROLES)
     const row = new ActionRowBuilder().addComponents(
@@ -94,9 +91,7 @@ module.exports = {
             .addFields(
               { name: 'Role Permissions', value: role.permissions.toArray().map(perm => `\`${perm}\``).join(', ') || 'No Permissions' }
             )
-            .setThumbnail(interaction.guild.iconURL({ dynamic: true }))
-            .setFooter({ text: `Requested by ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL({ dynamic: true }) })
-            .setTimestamp();
+            .setThumbnail(interaction.guild.iconURL({ dynamic: true }));
 
           await interaction.reply({ embeds: [permissionsEmbed], ephemeral: true });
         }

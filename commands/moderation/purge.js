@@ -1,7 +1,6 @@
 const {
   EmbedBuilder,
   PermissionsBitField,
-  userMention,
 } = require('discord.js');
 const { EMBED_COLOR, DELETE_AFTER } = require('../../constants');
 const { createEmbed } = require('../../helpers/commandInfoEmbed');
@@ -11,7 +10,7 @@ const infoEmbed = createEmbed(
   'Deletes a specified number of messages',
   'clear, p',
   'MANAGE_MESSAGES',
-  'purge <amount>\n,,purge <amount> bots\n,,purge <amount> user <mention>',
+  'purge <amount>\n,,purge <amount> bots\n,,purge <amount> @mentionuser',
 );
 
 const errorEmbed = new EmbedBuilder().setColor(EMBED_COLOR);
@@ -40,9 +39,9 @@ module.exports = {
     }
 
     // Check for filter type
-    if (filterType && !['bots', 'user'].includes(filterType)) {
+    if (filterType && filterType !== 'bots' && !message.mentions.users.size) {
       errorEmbed.setDescription(
-        'invalid filter type, available filters: `bots`, `user` \n```,,purge <amount> bots``` ```,,purge <amount> user <mention>```',
+        'You must mention a user to purge their messages.\n```,,purge <amount> @mentionuser```',
       );
       return message.reply({ embeds: [errorEmbed] });
     }
@@ -52,84 +51,32 @@ module.exports = {
         await purgeBots(message, amount);
         break;
 
-      case 'user':
-        const user = message.mentions.users.first();
-        if (!user) {
-          errorEmbed.setDescription(
-            'please mention a user to purge their messages.\n```,,purge <amount> user <mention>```',
-          );
-          return message.reply({ embeds: [errorEmbed] });
-        }
-
-        await purgeUser(message, user, amount);
-        break;
-
       default:
-        await purgeMessages(message, amount);
+        const user = message.mentions.users.first();
+        await purgeUser(message, user, amount);
         break;
     }
   },
 };
 
-async function purgeMessages(message, amount) {
-  if (amount < 1) return;
-
-  let totalDeleted = 0;
-
-  while (amount > 0) {
-    // Fetch messages from the channel
-    const fetched = await message.channel.messages.fetch({
-      limit: Math.min(amount + 1, 100),
-    });
-
-    // Filter out the command message
-    const toDelete = fetched.filter((msg) => msg.id !== message.id);
-
-    // If no messages to delete, break the loop
-    if (toDelete.size === 0) break;
-
-    // Try to bulk delete the messages
-    try {
-      const deleteCount = Math.min(toDelete.size, amount);
-      await message.channel.bulkDelete(toDelete.first(deleteCount), true);
-      totalDeleted += toDelete.size;
-      amount -= toDelete.size;
-    } catch (error) {
-      console.error('Error deleting messages:', error);
-      break; // Break the loop on error to avoid infinite loops
-    }
-
-    // Wait to avoid hitting rate limits
-    await wait(1500);
-  }
-
-  // Send a confirmation message
-  successEmbed.setDescription(`\`${totalDeleted}\` messages deleted.`);
-
-  const confirmationMessage = await message.channel.send({
-    embeds: [successEmbed],
-  });
-
-  // Set timeout to delete the confirmation message
-  setTimeout(() => confirmationMessage.delete().catch(() => {}), 5000); // Adjust DELETE_AFTER to 5000 ms if needed
-  message.delete().catch(() => {});
-}
-
 async function purgeBots(message, amount) {
   const fetched = await message.channel.messages.fetch({
-    limit: Math.min(100),
+    limit: Math.min(100, amount), // Fetch up to 100 messages or the requested amount
   });
-  const botMessages = fetched.filter((msg) => msg.author.bot).first(amount);
 
-  if (botMessages.size === 0) {
-    errorEmbed.setDescription('no bot messages found');
+  const botMessages = fetched.filter((msg) => msg.author.bot); // Filter bot messages
+
+  const messagesToDelete = botMessages.first(amount); // Get the specified amount of bot messages
+
+  if (messagesToDelete.size === 0) {
+    errorEmbed.setDescription('No bot messages found.');
     return message.reply({ embeds: [errorEmbed] });
   }
 
-  await message.channel.bulkDelete(botMessages, true);
+  await message.channel.bulkDelete(messagesToDelete, true); // Bulk delete the filtered messages
 
   successEmbed.setDescription(
-    `\`${botMessages.length}\` bot messages deleted.`,
+    `\`${messagesToDelete.size}\` bot messages deleted.`, // Correctly show the count
   );
   const confirmationMessage = await message.channel.send({
     embeds: [successEmbed],
@@ -153,7 +100,7 @@ async function purgeUser(message, user, amount) {
   );
 
   if (userMessages.size === 0) {
-    errorEmbed.setDescription(`No messages from \`${user.tag}\` found`);
+    errorEmbed.setDescription(`No messages from \`${user.tag}\` found.`);
     return message.reply({ embeds: [errorEmbed] });
   }
 

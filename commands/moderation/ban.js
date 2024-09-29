@@ -1,13 +1,13 @@
 const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 const { createEmbed } = require('../../helpers/commandInfoEmbed');
-const { EMBED_COLOR, EMOJIS } = require('../../constants');
+const { EMBED_COLOR, EMOJIS, PREFIX } = require('../../constants'); // Ensure PREFIX is defined
 
 const infoEmbed = createEmbed(
   `${EMOJIS.INFO} Ban`,
-  `${EMOJIS.INFO} Bans a user from the server.`,
-  'ban',
+  `This command is used to ban a user from the server.`,
+  'banish',
   'BAN_MEMBERS',
-  'ban @user <reason> or ban <user_id> <reason>',
+  `ban @user <reason>\n,,ban <user_id> <reason>`
 );
 
 const errorEmbed = new EmbedBuilder().setColor(EMBED_COLOR);
@@ -19,67 +19,73 @@ module.exports = {
   aliases: ['banish'],
 
   async execute(message, args) {
+    // Ensure the command is executed in a guild
+    if (!message.guild) {
+      errorEmbed.setDescription(`${EMOJIS.ERROR} This command can only be used in a server.`);
+      return message.channel.send({ embeds: [errorEmbed] });
+    }
+
+    // Check if the command was executed without any arguments
+    if (args.length === 0) {
+      return message.channel.send({ embeds: [infoEmbed] });
+    }
+
     // Support for banning by mention or user ID
     const memberToBan = message.mentions.members.first() || await message.guild.members.fetch(args[0]).catch(() => null);
     const reason = args.slice(1).join(' ') || 'No reason provided';
 
+    // Security check: ensure the member to ban is found
     if (!memberToBan) {
-      infoEmbed.setFooter({
-        text: `Mention a user or provide their user ID to ban.`,
-        iconURL: message.guild.iconURL({ dynamic: true }),
-      });
       return message.channel.send({ embeds: [infoEmbed] });
     }
 
+    // Check if the command user has ban permissions
     if (!message.member.permissions.has(PermissionsBitField.Flags.BanMembers)) {
-      errorEmbed.setDescription(
-        `${EMOJIS.ERROR} You need the \`BAN_MEMBERS\` permission to use this command.`,
-      );
+      errorEmbed.setDescription(`${EMOJIS.ERROR} You need the \`BAN_MEMBERS\` permission to use this command.`);
       return message.channel.send({ embeds: [errorEmbed] });
     }
 
-    if (
-      !message.guild.members.me.permissions.has(
-        PermissionsBitField.Flags.BanMembers,
-      )
-    ) {
-      errorEmbed.setDescription(
-        `${EMOJIS.ERROR} I don’t have the \`BAN_MEMBERS\` permission to ban this user.`,
-      );
+    // Check if the bot has ban permissions
+    if (!message.guild.members.me.permissions.has(PermissionsBitField.Flags.BanMembers)) {
+      errorEmbed.setDescription(`${EMOJIS.ERROR} I don’t have the \`BAN_MEMBERS\` permission to ban this user.`);
       return message.channel.send({ embeds: [errorEmbed] });
     }
 
-    if (
-      message.member.roles.highest.comparePositionTo(
-        memberToBan.roles.highest,
-      ) <= 0
-    ) {
-      errorEmbed.setDescription(
-        `${EMOJIS.ERROR} You cannot ban a member with a higher or equal role.`,
-      );
-      return message.channel.send({ embeds: [errorEmbed] });
-    }
+    // Ensure both members are defined before checking roles
+    if (message.member && memberToBan && message.member.roles && memberToBan.roles) {
+      // Check if the user is trying to ban themselves or the bot
+      if (memberToBan.id === message.author.id) {
+        errorEmbed.setDescription(`${EMOJIS.ERROR} You cannot ban yourself.`);
+        return message.channel.send({ embeds: [errorEmbed] });
+      }
+      if (memberToBan.id === message.guild.members.me.id) {
+        errorEmbed.setDescription(`${EMOJIS.ERROR} I cannot ban myself.`);
+        return message.channel.send({ embeds: [errorEmbed] });
+      }
 
-    if (
-      message.guild.members.me.roles.highest.comparePositionTo(
-        memberToBan.roles.highest,
-      ) <= 0
-    ) {
-      errorEmbed.setDescription(
-        `${EMOJIS.ERROR} I cannot ban this member due to role hierarchy.`,
-      );
+      // Role hierarchy checks
+      if (message.member.roles.highest.comparePositionTo(memberToBan.roles.highest) <= 0) {
+        errorEmbed.setDescription(`${EMOJIS.ERROR} You cannot ban a member with a higher or equal role.`);
+        return message.channel.send({ embeds: [errorEmbed] });
+      }
+
+      if (message.guild.members.me.roles.highest.comparePositionTo(memberToBan.roles.highest) <= 0) {
+        errorEmbed.setDescription(`${EMOJIS.ERROR} I cannot ban this member due to role hierarchy.`);
+        return message.channel.send({ embeds: [errorEmbed] });
+      }
+    } else {
+      errorEmbed.setDescription(`${EMOJIS.ERROR} Unable to retrieve role information. Please ensure the members are valid.`);
       return message.channel.send({ embeds: [errorEmbed] });
     }
 
     try {
+      // Attempt to ban the user
       await memberToBan.ban({ reason });
 
       successEmbed
         .setTitle(`${EMOJIS.BOLT} User Banned`)
-        .setDescription(
-          `\`${memberToBan.user.tag}\` has been banned from the server.`,
-        )
-        .setFields(
+        .setDescription(`\`${memberToBan.user.tag}\` has been banned from the server.`)
+        .addFields(
           { name: `${EMOJIS.INFO} Reason`, value: `\`\`\`${reason}\`\`\``, inline: false },
           { name: `${EMOJIS.USERS} Banned By`, value: `${message.author}`, inline: true },
           { name: `${EMOJIS.USER} User ID`, value: `${memberToBan.id}`, inline: true },
@@ -90,14 +96,14 @@ module.exports = {
         })
         .setTimestamp();
 
-      await message.channel.send({
-        embeds: [successEmbed],
-      });
+      await message.channel.send({ embeds: [successEmbed] });
 
+      // Delete the command message if possible
       message.delete().catch(() => {});
     } catch (error) {
       console.error(error);
-      message.reply({ content: `${EMOJIS.ERROR} There was an error trying to ban the user.` });
+      errorEmbed.setDescription(`${EMOJIS.ERROR} There was an error trying to ban the user.`);
+      return message.channel.send({ embeds: [errorEmbed] });
     }
   },
 };
