@@ -4,7 +4,13 @@ const { createEmbed } = require('../../helpers/commandInfoEmbed');
 
 const embed = new EmbedBuilder().setColor('#2B2D31');
 const errorEmbed = new EmbedBuilder().setColor('#2B2D31');
-const infoEmbed = createEmbed('dm', 'dms a user', 'none', 'BOT_ADMIN', 'dm <user> <message>');
+const infoEmbed = createEmbed(
+  'dm',
+  'dms a user',
+  'none',
+  'BOT_ADMIN',
+  'dm <user> <message>',
+);
 
 module.exports = {
   name: 'dm',
@@ -29,12 +35,16 @@ module.exports = {
       }
 
       if (!botMember.permissions.has(PermissionsBitField.Flags.SendMessages)) {
-        errorEmbed.setDescription('The bot does not have permission to send messages.');
+        errorEmbed.setDescription(
+          'The bot does not have permission to send messages.',
+        );
         return message.channel.send({ embeds: [errorEmbed] });
       }
 
       const dmMessage = args.join(' ');
-      const sanitizedMessage = dmMessage.replace(/<@!?(\d+)>/g, '').replace(/\d+/g, ''); // Replace mentions with a placeholder or just remove them
+      const sanitizedMessage = dmMessage
+        .replace(/<@!?(\d+)>/g, '')
+        .replace(/\d+/g, ''); // Replace mentions with a placeholder or just remove them
 
       if (!dmMessage) {
         return message.channel.send({ embeds: [infoEmbed] });
@@ -42,7 +52,9 @@ module.exports = {
 
       // fetch the member
       const userId = args[0];
-      const member = message.mentions.members.first() || message.guild.members.cache.get(userId);
+      const member =
+        message.mentions.members.first() ||
+        message.guild.members.cache.get(userId);
 
       if (!member) {
         return message.channel.send({ embeds: [infoEmbed] });
