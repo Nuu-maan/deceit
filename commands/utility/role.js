@@ -16,188 +16,140 @@ module.exports = {
   name: 'role',
   description: 'Manage roles (create, delete, add, remove)',
   async execute(message, args) {
-    // Check if the user has permission to manage roles
-    if (
-      !message.member.permissions.has(PermissionsBitField.Flags.ManageRoles)
-    ) {
-      errorEmbed.setDescription(
-        `${EMOJIS.ERROR} You do not have permission to manage roles.`,
-      );
-      return message.reply({
-        embeds: [errorEmbed],
-      });
+    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageRoles)) {
+      errorEmbed.setDescription(`${EMOJIS.ERROR} You do not have permission to manage roles.`);
+      return message.reply({ embeds: [errorEmbed] });
     }
 
-    // Check for missing arguments
     if (args.length < 2) {
       return message.reply({ embeds: [infoEmbed] });
     }
 
-    const action = args[0].toLowerCase(); // create, delete, add, remove
-    const roleName = args.slice(1).join(' '); // role name
+    const action = args[0].toLowerCase();
+    const userMention = message.mentions.members.first();
 
-    // Handle role management commands
-    if (action === 'create') {
-      try {
-        const role = await message.guild.roles.create({ name: roleName });
-        return message.reply({
-          embeds: [
-            new EmbedBuilder()
-              .setColor(EMBED_COLOR)
-              .setDescription(
-                `${EMOJIS.SUCCESS} Role \`${role.name}\` created successfully.`,
-              ),
-          ],
-        });
-      } catch (error) {
-        console.error('Error creating role:', error);
-        return message.reply({
-          embeds: [
-            new EmbedBuilder()
-              .setColor(EMBED_COLOR)
-              .setDescription(
-                `${EMOJIS.ERROR} There was an error creating the role.`,
-              ),
-          ],
-        });
-      }
-    }
-
-    if (action === 'delete') {
-      const role = message.guild.roles.cache.find((r) => r.name === roleName);
-      if (!role) {
-        return message.reply({
-          embeds: [
-            new EmbedBuilder()
-              .setColor(EMBED_COLOR)
-              .setDescription(
-                `${EMOJIS.ERROR} Role \`${roleName}\` not found.`,
-              ),
-          ],
-        });
-      }
-      try {
-        await role.delete();
-        return message.reply({
-          embeds: [
-            new EmbedBuilder()
-              .setColor(EMBED_COLOR)
-              .setDescription(
-                `${EMOJIS.SUCCESS} Role \`${role.name}\` deleted successfully.`,
-              ),
-          ],
-        });
-      } catch (error) {
-        console.error('Error deleting role:', error);
-        return message.reply({
-          embeds: [
-            new EmbedBuilder()
-              .setColor(EMBED_COLOR)
-              .setDescription(
-                `${EMOJIS.ERROR} There was an error deleting the role.`,
-              ),
-          ],
-        });
-      }
-    }
-
-    if (action === 'add') {
-      const userMention = message.mentions.members.first();
-
+    let roleName;
+    if (action === 'add' || action === 'remove') {
       if (!userMention) {
-        return message.reply({
-          embeds: [infoEmbed], // Send infoEmbed for incorrect usage
-        });
+        return message.reply({ embeds: [infoEmbed] });
       }
-
-      // Split the message content and extract the role name
-      const args = message.content.split(' ');
-      const roleName = args.slice(3).join(' '); // Assuming the role name starts from the 4th argument
-
-      const role = message.guild.roles.cache.find((r) => r.name === roleName);
-
-      if (!role) {
-        return message.reply({
-          embeds: [
-            new EmbedBuilder()
-              .setColor(EMBED_COLOR)
-              .setDescription(
-                `${EMOJIS.ERROR} Role \`${roleName}\` not found.`,
-              ),
-          ],
-        });
-      }
-
-      try {
-        await userMention.roles.add(role);
-        return message.reply({
-          embeds: [
-            new EmbedBuilder()
-              .setColor(EMBED_COLOR)
-              .setDescription(
-                `${EMOJIS.SUCCESS} Role \`${role.name}\` given to ${userMention.user.username}.`,
-              ),
-          ],
-        });
-      } catch (error) {
-        console.error('Error giving role:', error);
-        return message.reply({
-          embeds: [
-            new EmbedBuilder()
-              .setColor(EMBED_COLOR)
-              .setDescription(
-                `${EMOJIS.ERROR} There was an error giving the role.`,
-              ),
-          ],
-        });
-      }
+      // Extract role name from arguments after the mention
+      roleName = args.slice(2).join(' ').trim(); 
+    } else {
+      roleName = args.slice(1).join(' ').trim(); // For create and delete actions
     }
 
-    if (action === 'remove') {
-      const userMention = message.mentions.members.first();
-      if (!userMention) {
-        return message.reply({
-          embeds: [infoEmbed], // Send infoEmbed for incorrect usage
-        });
-      }
-      const role = message.guild.roles.cache.find((r) => r.name === roleName);
-      if (!role) {
-        return message.reply({
-          embeds: [
-            new EmbedBuilder()
-              .setColor(EMBED_COLOR)
-              .setDescription(
-                `${EMOJIS.ERROR} Role \`${roleName}\` not found.`,
-              ),
-          ],
-        });
-      }
-      try {
-        await userMention.roles.remove(role);
-        return message.reply({
-          embeds: [
-            new EmbedBuilder()
-              .setColor(EMBED_COLOR)
-              .setDescription(
-                `${EMOJIS.SUCCESS} Role \`${role.name}\` removed from ${userMention.user.username}.`,
-              ),
-          ],
-        });
-      } catch (error) {
-        console.error('Error removing role:', error);
-        return message.reply({
-          embeds: [
-            new EmbedBuilder()
-              .setColor(EMBED_COLOR)
-              .setDescription(
-                `${EMOJIS.ERROR} There was an error removing the role.`,
-              ),
-          ],
-        });
-      }
-    }
+    try {
+      switch (action) {
+        case 'create':
+          const createdRole = await message.guild.roles.create({ name: roleName });
+          return message.reply({
+            embeds: [
+              new EmbedBuilder()
+                .setColor(EMBED_COLOR)
+                .setDescription(`${EMOJIS.SUCCESS} Role \`${createdRole.name}\` created successfully.`),
+            ],
+          });
 
-    // If none of the above actions match, send the info embed.
-    return message.reply({ embeds: [infoEmbed] });
+        case 'delete':
+          const roleToDelete = message.guild.roles.cache.find(r => r.name === roleName || r.id === roleName);
+          if (!roleToDelete) {
+            console.log(`Role search failed for: "${roleName}"`);
+            return message.reply({
+              embeds: [
+                new EmbedBuilder()
+                  .setColor(EMBED_COLOR)
+                  .setDescription(`${EMOJIS.ERROR} Role \`${roleName}\` not found.`),
+              ],
+            });
+          }
+
+          const botMember = message.guild.members.me;
+          if (!botMember || !botMember.permissions.has(PermissionsBitField.Flags.ManageRoles)) {
+            return message.reply({
+              embeds: [
+                new EmbedBuilder()
+                  .setColor(EMBED_COLOR)
+                  .setDescription(`${EMOJIS.ERROR} I do not have permission to delete this role.`),
+              ],
+            });
+          }
+
+          if (botMember.roles.highest.position <= roleToDelete.position) {
+            return message.reply({
+              embeds: [
+                new EmbedBuilder()
+                  .setColor(EMBED_COLOR)
+                  .setDescription(`${EMOJIS.ERROR} My role is not high enough to delete this role.`),
+              ],
+            });
+          }
+
+          await roleToDelete.delete();
+          return message.reply({
+            embeds: [
+              new EmbedBuilder()
+                .setColor(EMBED_COLOR)
+                .setDescription(`${EMOJIS.SUCCESS} Role \`${roleToDelete.name}\` deleted successfully.`),
+            ],
+          });
+
+        case 'add':
+          const roleToAdd = message.guild.roles.cache.find(r => r.name === roleName || r.id === roleName);
+          if (!roleToAdd) {
+            console.log(`Role search failed for: "${roleName}"`);
+            return message.reply({
+              embeds: [
+                new EmbedBuilder()
+                  .setColor(EMBED_COLOR)
+                  .setDescription(`${EMOJIS.ERROR} Role \`${roleName}\` not found.`),
+              ],
+            });
+          }
+
+          await userMention.roles.add(roleToAdd);
+          return message.reply({
+            embeds: [
+              new EmbedBuilder()
+                .setColor(EMBED_COLOR)
+                .setDescription(`${EMOJIS.SUCCESS} Role \`${roleToAdd.name}\` given to ${userMention.user.username}.`),
+            ],
+          });
+
+        case 'remove':
+          const roleToRemove = message.guild.roles.cache.find(r => r.name === roleName || r.id === roleName);
+          if (!roleToRemove) {
+            console.log(`Role search failed for: "${roleName}"`);
+            return message.reply({
+              embeds: [
+                new EmbedBuilder()
+                  .setColor(EMBED_COLOR)
+                  .setDescription(`${EMOJIS.ERROR} Role \`${roleName}\` not found.`),
+              ],
+            });
+          }
+
+          await userMention.roles.remove(roleToRemove);
+          return message.reply({
+            embeds: [
+              new EmbedBuilder()
+                .setColor(EMBED_COLOR)
+                .setDescription(`${EMOJIS.SUCCESS} Role \`${roleToRemove.name}\` removed from ${userMention.user.username}.`),
+            ],
+          });
+
+        default:
+          return message.reply({ embeds: [infoEmbed] });
+      }
+    } catch (error) {
+      console.error('Error handling role command:', error);
+      return message.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(EMBED_COLOR)
+            .setDescription(`${EMOJIS.ERROR} An unexpected error occurred.`),
+        ],
+      });
+    }
   },
 };

@@ -161,7 +161,7 @@ client.on(Events.MessageCreate, async (message) => {
         .setColor(EMBED_COLOR)
         .setTitle('Hello there!')
         .setDescription(
-          `Hey ${message.author}, thanks for pinging me!\n\nMy prefixes are: \`${PREFIX}\` & \`${customPrefix}\`\nServer ID: \`${message.guild.id}\`\nWebsite: [Visit my site](https://deceit.site)`
+          `My prefixes are: \`${PREFIX}\` & \`${customPrefix}\`\nServer ID: \`${message.guild.id}\`\nWebsite: [Visit my site](https://deceit.site)`
         )
         .setFooter({
           text: 'Type ,,help for assistance!',
@@ -170,7 +170,7 @@ client.on(Events.MessageCreate, async (message) => {
         .setTimestamp();
 
       const buttonRow = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setLabel('Support Server').setURL('https://discord.gg/MscCWUP8').setStyle(ButtonStyle.Link),
+        new ButtonBuilder().setLabel('Support Server').setURL('https://discord.gg/deceitbot').setStyle(ButtonStyle.Link),
         new ButtonBuilder().setLabel('Visit Site').setURL('https://deceit.site').setStyle(ButtonStyle.Link),
         new ButtonBuilder().setLabel('Invite Bot').setURL('https://discord.com/oauth2/authorize?client_id=1272138809110433853&permissions=137941486839&scope=bot').setStyle(ButtonStyle.Link)
       );
