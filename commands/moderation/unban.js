@@ -60,11 +60,9 @@ module.exports = {
         .setDescription(`\`${bannedUser.tag}\` has been unbanned from the server.`)
         .setFields(
           { name: `${EMOJIS.INFO} Reason`, value: `\`\`\`${reason}\`\`\``, inline: false },
-          { name: `${EMOJIS.USERS} Unbanned By`, value: `${message.author}`, inline: true },
-          { name: `${EMOJIS.USER} User ID`, value: `${userId}`, inline: true },
         )
         .setFooter({
-          text: `Unban executed successfully by ${message.author.tag}`,
+          text: `Unban executed  by ${message.author.tag}`,
           iconURL: message.author.displayAvatarURL({ dynamic: true }),
         })
         .setTimestamp();

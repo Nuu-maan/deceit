@@ -133,8 +133,8 @@ module.exports = {
           return message.reply({
             embeds: [
               new EmbedBuilder()
-                .setColor(EMBED_COLOR)
-                .setDescription(`${EMOJIS.SUCCESS} Role \`${roleToRemove.name}\` removed from ${userMention.user.username}.`),
+              .setColor(EMBED_COLOR)
+              .setDescription(`${EMOJIS.SUCCESS} Role \`${roleToRemove.name}\` removed from ${userMention.user.username}.`),
             ],
           });
 
@@ -148,8 +148,8 @@ module.exports = {
           new EmbedBuilder()
             .setColor(EMBED_COLOR)
             .setDescription(`${EMOJIS.ERROR} An unexpected error occurred.`),
-        ],
-      });
-    }
-  },
+    ],
+  });
+}
+},
 };

@@ -19,8 +19,7 @@ module.exports = {
   aliases: ['untimeout'],
 
   async execute(message, args) {
-    // Get the user ID from mentions or args
-    const userId = args[0]?.replace(/\D/g, ''); // Remove any non-digit characters
+    const userId = args[0]?.replace(/\D/g, '');
     const memberToUnmute = message.mentions.members.first() || message.guild.members.cache.get(userId);
     const reason = args.slice(1).join(' ') || 'No reason provided';
 
@@ -57,8 +56,12 @@ module.exports = {
     try {
       await memberToUnmute.timeout(null, reason);
 
-      // Update success embed to match mute command format
-      successEmbed.setDescription(`${EMOJIS.SUCCESS} ${memberToUnmute.user.tag} has been unmuted. \`\`\`Reason: ${reason}\`\`\``);
+      successEmbed.setDescription(`${EMOJIS.SUCCESS} ${memberToUnmute.user.tag} has been unmuted. \`\`\`Reason: ${reason}\`\`\``)
+        .setFooter({
+          text: `Unmuted by ${message.author.tag}`,
+          iconURL: message.author.displayAvatarURL({ dynamic: true }),
+        })
+        .setTimestamp();
 
       await message.channel.send({ embeds: [successEmbed] });
 

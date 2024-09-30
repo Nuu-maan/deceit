@@ -87,18 +87,15 @@ module.exports = {
         .setDescription(`\`${memberToBan.user.tag}\` has been banned from the server.`)
         .addFields(
           { name: `${EMOJIS.INFO} Reason`, value: `\`\`\`${reason}\`\`\``, inline: false },
-          { name: `${EMOJIS.USERS} Banned By`, value: `${message.author}`, inline: true },
-          { name: `${EMOJIS.USER} User ID`, value: `${memberToBan.id}`, inline: true },
         )
         .setFooter({
-          text: `Ban executed successfully by ${message.author.tag}`,
+          text: `Ban executed by ${message.author.tag}`,
           iconURL: message.author.displayAvatarURL({ dynamic: true }),
         })
         .setTimestamp();
 
       await message.channel.send({ embeds: [successEmbed] });
 
-      // Delete the command message if possible
       message.delete().catch(() => {});
     } catch (error) {
       console.error(error);
