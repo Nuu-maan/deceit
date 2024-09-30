@@ -13,6 +13,7 @@ const fs = require('fs');
 const path = require('path');
 const { PREFIX, EMBED_COLOR } = require('./constants');
 const db = require('./database/database');
+const os = require('os');
 
 const client = new Client({
   intents: [
@@ -45,22 +46,7 @@ fs.readdirSync(path.join(__dirname, 'commands')).forEach((dir) => {
   }
 });
 
-client.once(Events.ClientReady, () => {
-  console.log(`Logged in as ${client.user.tag}!`);
-  client.user.setPresence({
-    activities: [
-      {
-        name: ',,help',
-        type: ActivityType.Playing,
-      },
-    ],
-    status: 'online',
-  });
-
-  // Fetch and save server data
-  fetchAndSaveServerData();
-});
-
+// Fetch and save server data
 const fetchAndSaveServerData = () => {
   const serversData = [];
 
@@ -72,24 +58,19 @@ const fetchAndSaveServerData = () => {
     });
   });
 
-  // Define the path to save data
   const dataDir = path.join(__dirname, 'sites');
   const dataPath = path.join(dataDir, 'data.json');
 
-  // Create the 'sites' directory if it doesn't exist
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir);
   }
 
-  // Read existing data if it exists
   let existingData = [];
   if (fs.existsSync(dataPath)) {
     existingData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
   }
 
-  // Compare existing data with new data
   if (JSON.stringify(existingData) !== JSON.stringify(serversData)) {
-    // Write data to JSON file
     fs.writeFileSync(dataPath, JSON.stringify(serversData, null, 2), 'utf-8');
     console.log('Server data saved to sites/data.json');
   } else {
@@ -97,72 +78,76 @@ const fetchAndSaveServerData = () => {
   }
 };
 
+client.once(Events.ClientReady, () => {
+  console.log(`Logged in as ${client.user.tag}!`);
+
+  // Set bot presence
+  client.user.setPresence({
+    activities: [
+      {
+        name: ',,help',
+        type: ActivityType.Playing,
+      },
+    ],
+    status: 'online',
+  });
+
+  // Diagnostic checks
+  runDiagnostics();
+
+  // Fetch and save server data
+  fetchAndSaveServerData();
+});
+
+// Diagnostic checks
+const runDiagnostics = () => {
+  console.log('Running diagnostics...');
+  
+  // Check WebSocket ping
+  const wsPing = client.ws.ping;
+  if (wsPing >= 0) {
+    console.log(`WebSocket Ping: ${wsPing}ms`);
+  } else {
+    console.error('WebSocket not connected.');
+  }
+
+  // Check CPU and memory usage
+  const memoryUsage = process.memoryUsage().heapUsed / 1024 / 1024;
+  console.log(`Memory Usage: ${memoryUsage.toFixed(2)} MB`);
+
+  const cpuUsage = os.loadavg()[0];
+  console.log(`CPU Load: ${cpuUsage.toFixed(2)}`);
+
+  // Check all commands are loaded
+  if (commands.size > 0) {
+    console.log(`Commands Loaded: ${commands.size}`);
+  } else {
+    console.error('No commands found. Check the commands directory.');
+  }
+
+  // Shard check (if sharding is enabled)
+  if (client.shard) {
+    console.log(`Shards: ${client.shard.count} shards active.`);
+  } else {
+    console.log('Sharding not enabled.');
+  }
+
+  // Check guild cache
+  if (client.guilds.cache.size > 0) {
+    console.log(`Connected to ${client.guilds.cache.size} guilds.`);
+  } else {
+    console.error('Not connected to any guilds.');
+  }
+};
+
 client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) return;
 
-  // Check if the message is a reply
   if (message.mentions.has(client.user) && !message.reference) {
     const serverId = message.guild.id;
     let customPrefix = 'null';
 
-    db.get(
-      'SELECT prefix FROM prefixes WHERE server_id = ?',
-      [serverId],
-      async (err, row) => {
-        if (err) {
-          console.error('Error fetching prefix:', err);
-          return;
-        }
-
-        if (row) {
-          customPrefix = row.prefix;
-        }
-
-        const embed = new EmbedBuilder()
-          .setColor(EMBED_COLOR)
-          .setTitle('Hello there!')
-          .setDescription(
-            `Hey ${message.author}, thanks for pinging me!\n\nMy prefixes are: \`${PREFIX}\` & \`${customPrefix}\`\nServer ID: \`${message.guild.id}\`\nWebsite: [Visit my site](https://deceit.site)`,
-          )
-          .setFooter({
-            text: 'Type ,,help for assistance!',
-            iconURL: client.user.displayAvatarURL(),
-          })
-          .setTimestamp();
-
-        // Create buttons
-        const buttonRow = new ActionRowBuilder().addComponents(
-          new ButtonBuilder()
-            .setLabel('Support Server')
-            .setURL('https://discord.gg/MscCWUP8') // Replace with your support server link
-            .setStyle(ButtonStyle.Link),
-          new ButtonBuilder()
-            .setLabel('Visit Site')
-            .setURL('https://deceit.site') // Replace with your site link
-            .setStyle(ButtonStyle.Link),
-          new ButtonBuilder()
-            .setLabel('Invite Bot')
-            .setURL(
-              'https://discord.com/oauth2/authorize?client_id=1272138809110433853&permissions=137941486839&scope=bot',
-            ) // Replace with your bot invite link
-            .setStyle(ButtonStyle.Link),
-        );
-
-        return message.channel.send({
-          embeds: [embed],
-          components: [buttonRow],
-        }); // Send embed with buttons
-      },
-    );
-  }
-
-  const serverId = message.guild.id;
-  let customPrefix = PREFIX;
-
-  db.get(
-    'SELECT prefix FROM prefixes WHERE server_id = ?',
-    [serverId],
-    async (err, row) => {
+    db.get('SELECT prefix FROM prefixes WHERE server_id = ?', [serverId], async (err, row) => {
       if (err) {
         console.error('Error fetching prefix:', err);
         return;
@@ -172,29 +157,63 @@ client.on(Events.MessageCreate, async (message) => {
         customPrefix = row.prefix;
       }
 
-      const prefixUsed = message.content.startsWith(PREFIX)
-        ? PREFIX
-        : message.content.startsWith(customPrefix)
-        ? customPrefix
-        : null;
+      const embed = new EmbedBuilder()
+        .setColor(EMBED_COLOR)
+        .setTitle('Hello there!')
+        .setDescription(
+          `Hey ${message.author}, thanks for pinging me!\n\nMy prefixes are: \`${PREFIX}\` & \`${customPrefix}\`\nServer ID: \`${message.guild.id}\`\nWebsite: [Visit my site](https://deceit.site)`
+        )
+        .setFooter({
+          text: 'Type ,,help for assistance!',
+          iconURL: client.user.displayAvatarURL(),
+        })
+        .setTimestamp();
 
-      if (!prefixUsed) return;
+      const buttonRow = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setLabel('Support Server').setURL('https://discord.gg/MscCWUP8').setStyle(ButtonStyle.Link),
+        new ButtonBuilder().setLabel('Visit Site').setURL('https://deceit.site').setStyle(ButtonStyle.Link),
+        new ButtonBuilder().setLabel('Invite Bot').setURL('https://discord.com/oauth2/authorize?client_id=1272138809110433853&permissions=137941486839&scope=bot').setStyle(ButtonStyle.Link)
+      );
 
-      const args = message.content.slice(prefixUsed.length).trim().split(/ +/);
-      const commandName = args.shift().toLowerCase();
+      return message.channel.send({ embeds: [embed], components: [buttonRow] });
+    });
+  }
 
-      const command = commands.get(commandName);
+  const serverId = message.guild.id;
+  let customPrefix = PREFIX;
 
-      if (command) {
-        try {
-          await command.execute(message, args);
-        } catch (error) {
-          console.error(error);
-          message.reply('There was an error trying to execute that command.');
-        }
+  db.get('SELECT prefix FROM prefixes WHERE server_id = ?', [serverId], async (err, row) => {
+    if (err) {
+      console.error('Error fetching prefix:', err);
+      return;
+    }
+
+    if (row) {
+      customPrefix = row.prefix;
+    }
+
+    const prefixUsed = message.content.startsWith(PREFIX)
+      ? PREFIX
+      : message.content.startsWith(customPrefix)
+      ? customPrefix
+      : null;
+
+    if (!prefixUsed) return;
+
+    const args = message.content.slice(prefixUsed.length).trim().split(/ +/);
+    const commandName = args.shift().toLowerCase();
+
+    const command = commands.get(commandName);
+
+    if (command) {
+      try {
+        await command.execute(message, args);
+      } catch (error) {
+        console.error(error);
+        message.reply('There was an error trying to execute that command.');
       }
-    },
-  );
+    }
+  });
 });
 
 client.login(process.env.DISCORD_TOKEN);
