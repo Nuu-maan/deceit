@@ -1,4 +1,10 @@
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionsBitField } = require('discord.js');
+const {
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  PermissionsBitField,
+} = require('discord.js');
 const { createEmbed } = require('../../helpers/commandInfoEmbed');
 const { EMOJIS, EMBED_COLOR } = require('../../constants');
 
@@ -16,7 +22,7 @@ module.exports = {
   name: 'roleinfo',
   aliases: ['rinfo'],
   description: 'Displays information about a specified role.',
-  
+
   async execute(message, args) {
     const roleMention = args[0]; // Get role from arguments
 
@@ -26,24 +32,30 @@ module.exports = {
     }
 
     // Try to get the role from the guild
-    const role = message.guild.roles.cache.get(roleMention.replace(/[<@&>]/g, ''));
+    const role = message.guild.roles.cache.get(
+      roleMention.replace(/[<@&>]/g, ''),
+    );
 
     if (!role) {
-      errorEmbed.setDescription('Invalid role provided. Please mention a valid role.');
+      errorEmbed.setDescription(
+        'Invalid role provided. Please mention a valid role.',
+      );
       return message.channel.send({ embeds: [errorEmbed] });
     }
 
     // Role info embed
     const roleInfoEmbed = new EmbedBuilder()
       .setColor(EMBED_COLOR) // Use embed color from constants
-      .setTitle(`Role: ${role.name}`)
-      .addFields(
-        { name: `${EMOJIS.USERS} | Members`, value: `${role.members.size}`, inline: true },
-        { name: `${EMOJIS.KEY} | Role ID`, value: `${role.id}`, inline: true },
-        { name: `${EMOJIS.SETTINGS} | Color`, value: `${role.hexColor}`, inline: true },
-        { name: `${EMOJIS.BOLT} | Position`, value: `${role.position}`, inline: true },
-        { name: `${EMOJIS.HEART} | Mentionable`, value: role.mentionable ? 'Yes' : 'No', inline: true },
-        { name: `${EMOJIS.STAR} | Created At`, value: role.createdAt.toDateString(), inline: true },
+      .setTitle(`role: ${role.name}`)
+      .setDescription(
+        `
+        > members: ${role.members.size}
+        > role id: ${role.id}
+        > color: ${role.hexColor}
+        > position: ${role.position}
+        > mentionable: ${role.mentionable}
+        > created at: ${role.createdAt.toDateString()}
+        `,
       );
 
     // Add a button for role permissions (only for users with MANAGE_ROLES)
@@ -53,11 +65,18 @@ module.exports = {
         .setLabel('Show Role Permissions')
         .setEmoji(EMOJIS.SETTINGS)
         .setStyle(ButtonStyle.Primary)
-        .setDisabled(!message.member.permissions.has(PermissionsBitField.Flags.ManageRoles)) // Disable if no MANAGE_ROLES
+        .setDisabled(
+          !message.member.permissions.has(
+            PermissionsBitField.Flags.ManageRoles,
+          ),
+        ), // Disable if no MANAGE_ROLES
     );
 
     // Send the role information embed with the button
-    const msg = await message.channel.send({ embeds: [roleInfoEmbed], components: [row] });
+    const msg = await message.channel.send({
+      embeds: [roleInfoEmbed],
+      components: [row],
+    });
 
     // Create a collector to handle button interaction
     const collector = msg.createMessageComponentCollector({
@@ -69,9 +88,14 @@ module.exports = {
       try {
         if (interaction.customId === 'show_permissions') {
           // Check if the user has MANAGE_ROLES and is the message author
-          if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageRoles)) {
+          if (
+            !interaction.member.permissions.has(
+              PermissionsBitField.Flags.ManageRoles,
+            )
+          ) {
             return interaction.reply({
-              content: 'You do not have permission to view the role permissions!',
+              content:
+                'You do not have permission to view the role permissions!',
               ephemeral: true,
             });
           }
@@ -88,20 +112,31 @@ module.exports = {
             .setColor(EMBED_COLOR)
             .setTitle(`Permissions for Role: ${role.name}`)
             .setDescription('Here are the permissions for this role:')
-            .addFields(
-              { name: 'Role Permissions', value: role.permissions.toArray().map(perm => `\`${perm}\``).join(', ') || 'No Permissions' }
-            )
+            .addFields({
+              name: 'Role Permissions',
+              value:
+                role.permissions
+                  .toArray()
+                  .map((perm) => `\`${perm}\``)
+                  .join(', ') || 'No Permissions',
+            })
             .setThumbnail(interaction.guild.iconURL({ dynamic: true }));
 
-          await interaction.reply({ embeds: [permissionsEmbed], ephemeral: true });
+          await interaction.reply({
+            embeds: [permissionsEmbed],
+            ephemeral: true,
+          });
         }
       } catch (error) {
         console.error('Error handling interaction:', error);
-        await interaction.reply({ content: 'There was an error while processing your request.', ephemeral: true });
+        await interaction.reply({
+          content: 'There was an error while processing your request.',
+          ephemeral: true,
+        });
       }
     });
 
-    collector.on('end', collected => {
+    collector.on('end', (collected) => {
       row.components[0].setDisabled(true);
       msg.edit({ components: [row] });
     });

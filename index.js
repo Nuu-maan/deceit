@@ -11,7 +11,7 @@ const {
 } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { PREFIX, EMBED_COLOR } = require('./constants');
+const { PREFIX, EMBED_COLOR, EMOJIS } = require('./constants');
 const db = require('./database/database');
 const os = require('os');
 
@@ -102,7 +102,7 @@ client.once(Events.ClientReady, () => {
 // Diagnostic checks
 const runDiagnostics = () => {
   console.log('Running diagnostics...');
-  
+
   // Check WebSocket ping
   const wsPing = client.ws.ping;
   if (wsPing >= 0) {
@@ -147,7 +147,58 @@ client.on(Events.MessageCreate, async (message) => {
     const serverId = message.guild.id;
     let customPrefix = 'null';
 
-    db.get('SELECT prefix FROM prefixes WHERE server_id = ?', [serverId], async (err, row) => {
+    db.get(
+      'SELECT prefix FROM prefixes WHERE server_id = ?',
+      [serverId],
+      async (err, row) => {
+        if (err) {
+          console.error('Error fetching prefix:', err);
+          return;
+        }
+
+        if (row) {
+          customPrefix = row.prefix;
+        }
+
+        const embed = new EmbedBuilder()
+          .setColor(EMBED_COLOR)
+          .setDescription(
+            `> Prefixes: \`${PREFIX}\` \`${customPrefix}\` Try \`,,help\` for more info `,
+          );
+
+        const buttonRow = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setLabel('server')
+            .setURL('https://discord.gg/deceitbot')
+            .setStyle(ButtonStyle.Link),
+          new ButtonBuilder()
+            .setLabel('site')
+            .setURL('https://deceit.site')
+            .setStyle(ButtonStyle.Link),
+          new ButtonBuilder()
+            .setLabel('bot')
+            .setURL(
+              'https://discord.com/oauth2/authorize?client_id=1272138809110433853',
+            )
+            .setStyle(ButtonStyle.Link),
+        );
+
+        return message.reply({
+          embeds: [embed],
+          components: [buttonRow],
+          allowedMentions: { repliedUser: false }, // Prevent ping
+        });
+      },
+    );
+  }
+
+  const serverId = message.guild.id;
+  let customPrefix = PREFIX;
+
+  db.get(
+    'SELECT prefix FROM prefixes WHERE server_id = ?',
+    [serverId],
+    async (err, row) => {
       if (err) {
         console.error('Error fetching prefix:', err);
         return;
@@ -157,63 +208,29 @@ client.on(Events.MessageCreate, async (message) => {
         customPrefix = row.prefix;
       }
 
-      const embed = new EmbedBuilder()
-        .setColor(EMBED_COLOR)
-        .setTitle('Hello there!')
-        .setDescription(
-          `My prefixes are: \`${PREFIX}\` & \`${customPrefix}\`\nServer ID: \`${message.guild.id}\`\nWebsite: [Visit my site](https://deceit.site)`
-        )
-        .setFooter({
-          text: 'Type ,,help for assistance!',
-          iconURL: client.user.displayAvatarURL(),
-        })
-        .setTimestamp();
+      const prefixUsed = message.content.startsWith(PREFIX)
+        ? PREFIX
+        : message.content.startsWith(customPrefix)
+        ? customPrefix
+        : null;
 
-      const buttonRow = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setLabel('Support Server').setURL('https://discord.gg/deceitbot').setStyle(ButtonStyle.Link),
-        new ButtonBuilder().setLabel('Visit Site').setURL('https://deceit.site').setStyle(ButtonStyle.Link),
-        new ButtonBuilder().setLabel('Invite Bot').setURL('https://discord.com/oauth2/authorize?client_id=1272138809110433853&permissions=137941486839&scope=bot').setStyle(ButtonStyle.Link)
-      );
+      if (!prefixUsed) return;
 
-      return message.channel.send({ embeds: [embed], components: [buttonRow] });
-    });
-  }
+      const args = message.content.slice(prefixUsed.length).trim().split(/ +/);
+      const commandName = args.shift().toLowerCase();
 
-  const serverId = message.guild.id;
-  let customPrefix = PREFIX;
+      const command = commands.get(commandName);
 
-  db.get('SELECT prefix FROM prefixes WHERE server_id = ?', [serverId], async (err, row) => {
-    if (err) {
-      console.error('Error fetching prefix:', err);
-      return;
-    }
-
-    if (row) {
-      customPrefix = row.prefix;
-    }
-
-    const prefixUsed = message.content.startsWith(PREFIX)
-      ? PREFIX
-      : message.content.startsWith(customPrefix)
-      ? customPrefix
-      : null;
-
-    if (!prefixUsed) return;
-
-    const args = message.content.slice(prefixUsed.length).trim().split(/ +/);
-    const commandName = args.shift().toLowerCase();
-
-    const command = commands.get(commandName);
-
-    if (command) {
-      try {
-        await command.execute(message, args);
-      } catch (error) {
-        console.error(error);
-        message.reply('There was an error trying to execute that command.');
+      if (command) {
+        try {
+          await command.execute(message, args);
+        } catch (error) {
+          console.error(error);
+          message.reply('There was an error trying to execute that command.');
+        }
       }
-    }
-  });
+    },
+  );
 });
 
 client.login(process.env.DISCORD_TOKEN);

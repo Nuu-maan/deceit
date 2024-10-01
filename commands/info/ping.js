@@ -8,36 +8,53 @@ module.exports = {
   description: 'replies with pong and advanced latency info',
   async execute(message) {
     if (!message.guild) {
-      return message.reply(`${EMOJIS.ERROR} this command can only be used in a server!`);
+      return message.reply(
+        `${EMOJIS.ERROR} this command can only be used in a server!`,
+      );
     }
 
-    if (!message.guild.members.me.permissions.has(['SendMessages', 'EmbedLinks'])) {
-      return message.reply(`${EMOJIS.ERROR} i don’t have permission to send messages or embeds here!`);
+    if (
+      !message.guild.members.me.permissions.has(['SendMessages', 'EmbedLinks'])
+    ) {
+      return message.reply(
+        `${EMOJIS.ERROR} I don’t have permission to send messages or embeds here!`,
+      );
     }
 
     try {
       const startTime = performance.now();
-      const sentMessage = await message.channel.send("🏓 pong! calculating...");
 
-      const latency = Math.round(performance.now() - startTime);      
-      const apiLatency = message.client.ws.ping >= 0 ? Math.round(message.client.ws.ping) : 0; // Ensure valid WS ping
+      // Initial reply with "latency"
+      const initialReply = await message.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(EMBED_COLOR)
+            .setDescription(`> checking ping...`),
+        ],
+        allowedMentions: { repliedUser: false },
+      });
+
+      const latency = Math.round(performance.now() - startTime);
+      const apiLatency =
+        message.client.ws.ping >= 0 ? Math.round(message.client.ws.ping) : 0; // Ensure valid WS ping
       const serverRegion = message.guild.preferredLocale || 'Unknown';
       const hostname = os.hostname();
 
+      // Create the embed with complete information
       const pingEmbed = new EmbedBuilder()
         .setColor(EMBED_COLOR)
-        .setDescription(`
-        latency: **\`${latency}\`** ms  
-        ws ping: **\`${apiLatency}\`** ms
-        server region: \`${serverRegion}\`
-        host: \`${hostname}\`
-  `);
+        .setDescription(
+          `latency: **\`${latency}\`** ms\nws ping: **\`${apiLatency}\`** ms\nserver region: **\`${serverRegion}\`**\nhost: **\`${hostname}\`**`,
+        );
 
-      await sentMessage.delete();
-      await message.channel.send({ embeds: [pingEmbed] });
-
+      // Edit the initial reply to include the embed
+      await initialReply.edit({
+        content: '',
+        embeds: [pingEmbed],
+        allowedMentions: { repliedUser: false },
+      });
     } catch (error) {
-      console.error('error executing ping command:', error);
+      console.error('Error executing ping command:', error);
       return message.channel.send(`${EMOJIS.ERROR} something went wrong!`);
     }
   },

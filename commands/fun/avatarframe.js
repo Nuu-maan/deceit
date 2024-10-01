@@ -53,7 +53,7 @@ module.exports = {
       successEmbed
         .setColor(EMBED_COLOR)
         .setDescription(
-          `${EMOJIS.SUCCESS} Here is your avatar with the \`${frameType}\` frame!`,
+          `${EMOJIS.SUCCESS}  Here is your avatar with the \`${frameType}\` frame!`,
         )
         .setImage('attachment://avatar_with_frame.png');
 
@@ -66,7 +66,7 @@ module.exports = {
       const errorEmbed = new EmbedBuilder()
         .setColor(EMBED_COLOR)
         .setDescription(
-          `${EMOJIS.ERROR} Oops, something went wrong while applying the frame!`,
+          `${EMOJIS.ERROR}  Oops, something went wrong while applying the frame!`,
         );
       return message.channel.send({ embeds: [errorEmbed] });
     }

@@ -61,11 +61,6 @@ module.exports = {
         .setFields(
           { name: `${EMOJIS.INFO} Reason`, value: `\`\`\`${reason}\`\`\``, inline: false },
         )
-        .setFooter({
-          text: `Unban executed  by ${message.author.tag}`,
-          iconURL: message.author.displayAvatarURL({ dynamic: true }),
-        })
-        .setTimestamp();
 
       await message.channel.send({ embeds: [successEmbed] });
 

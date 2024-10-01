@@ -49,11 +49,6 @@ module.exports = {
       await user.timeout(durationMs, reason);
       successEmbed
         .setDescription(`${EMOJIS.SUCCESS} ${user.user.tag} has been muted for \`${duration}\`. \`\`\`Reason: ${reason}\`\`\``)
-        .setFooter({
-          text: `mute executed by ${message.author.tag}`,
-          iconURL: message.author.displayAvatarURL({ dynamic: true }),
-        })
-        .setTimestamp();
 
       await message.channel.send({ embeds: [successEmbed] });
     } catch (error) {

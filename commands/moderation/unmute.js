@@ -57,11 +57,6 @@ module.exports = {
       await memberToUnmute.timeout(null, reason);
 
       successEmbed.setDescription(`${EMOJIS.SUCCESS} ${memberToUnmute.user.tag} has been unmuted. \`\`\`Reason: ${reason}\`\`\``)
-        .setFooter({
-          text: `Unmuted by ${message.author.tag}`,
-          iconURL: message.author.displayAvatarURL({ dynamic: true }),
-        })
-        .setTimestamp();
 
       await message.channel.send({ embeds: [successEmbed] });
 
