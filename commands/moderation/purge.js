@@ -7,7 +7,7 @@ const infoEmbed = createEmbed(
   'Deletes a specified number of messages',
   'clear, p',
   'MANAGE_MESSAGES',
-  'purge <amount>\n,,purge <amount> bots\n,,purge <amount> @mentionuser\n,,purge bots (delete all bots messages)'
+  '`purge <amount>`\n`purge <amount> bots`\n`purge <amount> @mentionuser`\n`purge bots` (delete all bot messages)'
 );
 
 const errorEmbed = new EmbedBuilder().setColor(EMBED_COLOR);
@@ -23,6 +23,11 @@ module.exports = {
     if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
       errorEmbed.setDescription('`MANAGE_MESSAGES` permission required.');
       return message.reply({ embeds: [errorEmbed] });
+    }
+
+    // If no arguments are provided, send the infoEmbed
+    if (args.length === 0) {
+      return message.reply({ embeds: [infoEmbed] });
     }
 
     const amount = args[0] && !isNaN(args[0]) ? parseInt(args[0]) : null;
