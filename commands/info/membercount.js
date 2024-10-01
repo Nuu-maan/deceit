@@ -1,8 +1,10 @@
 const { EmbedBuilder } = require('discord.js');
 const { EMBED_COLOR } = require('../../constants');
+const { aliases } = require('./serverinfo');
 
 module.exports = {
   name: 'membercount',
+  aliases: ['mc'],
   description: 'displays the total number of members, humans, and bots in the server.',
   async execute(message) {
     try {
