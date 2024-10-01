@@ -37,16 +37,14 @@ module.exports = {
 
     const newPrefix = args[0];
 
-    // Check if a new prefix is provided and valid (1-5 characters, no special characters)
-// Updated validation regex to allow "?" and other special characters
-if (!newPrefix || newPrefix.length < 1 || newPrefix.length > 5 || /[^a-zA-Z0-9!@#$%^&*()_+?]/.test(newPrefix)) {
-  infoEmbed.setFooter({
-    text: 'Please provide a valid prefix (1-5 alphanumeric or special characters).',
-    iconURL: message.guild.iconURL({ dynamic: true }),
-  });
-  return message.channel.send({ embeds: [infoEmbed] });
-}
-
+    // Check if a new prefix is provided and valid (no regex constraints now)
+    if (!newPrefix || newPrefix.length < 1 || newPrefix.length > 5) {
+      infoEmbed.setFooter({
+        text: 'Please provide a valid prefix (1-5 characters).',
+        iconURL: message.guild.iconURL({ dynamic: true }),
+      });
+      return message.channel.send({ embeds: [infoEmbed] });
+    }
 
     // Insert or update the custom prefix in the database using a parameterized query
     db.run('INSERT OR REPLACE INTO prefixes (server_id, prefix) VALUES (?, ?)', [serverId, newPrefix], (err) => {
