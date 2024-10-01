@@ -1,7 +1,8 @@
 const PREFIX = ',,';
 const DELETE_AFTER = 5000;
 const BOT_ADMINS = ['1247843122160074782', '877082451850178642'];
-const EMBED_COLOR = '#b3e07f';
+// const EMBED_COLOR = '#b3e07f';
+const EMBED_COLOR = '#2b2d31';
 const EMOJIS = {
   INFO: '<:info:1284140623271563285>',
   SUCCESS: '<:success:1284139732158251078>',
