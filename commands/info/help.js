@@ -2,9 +2,11 @@ const { EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require('dis
 const fs = require('fs');
 const path = require('path');
 const { EMBED_COLOR } = require('../../constants'); 
+const { aliases } = require('./userinfo');
 
 module.exports = {
     name: 'help',
+    aliases: ['learn'],
     description: 'Shows the list of commands with pagination.',
     async execute(interaction) {
       const user = interaction.user || interaction.author;
@@ -58,6 +60,7 @@ module.exports = {
         embeds: [homeEmbed],
         components: [row],
         fetchReply: true,
+        allowedMentions: { users: [] } 
       });
   
       const filter = (i) => i.user.id === user.id;

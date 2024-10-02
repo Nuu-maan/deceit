@@ -14,6 +14,7 @@ const path = require('path');
 const { PREFIX, EMBED_COLOR, EMOJIS } = require('./constants');
 const db = require('./database/database');
 const os = require('os');
+const messageListener = require('./events/social-embed-fixer/instagram')
 
 const client = new Client({
   intents: [
@@ -46,7 +47,8 @@ fs.readdirSync(path.join(__dirname, 'commands')).forEach((dir) => {
   }
 });
 
-// Fetch and save server data
+messageListener(client);
+
 const fetchAndSaveServerData = () => {
   const serversData = [];
 
