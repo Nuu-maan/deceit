@@ -29,7 +29,7 @@ module.exports = {
         embeds: [
           new EmbedBuilder()
             .setColor(EMBED_COLOR)
-            .setDescription(`> checking ping...`),
+            .setDescription(`checking ping...`),
         ],
         allowedMentions: { repliedUser: false },
       });

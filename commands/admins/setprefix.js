@@ -65,11 +65,9 @@ module.exports = {
         }
 
         // Success message
-        successEmbed
-          .setTitle(`${EMOJIS.SUCCESS} Prefix Successfully Set`)
-          .setDescription(
-            `The prefix has been successfully set to \`${newPrefix}\` for this server.`,
-          );
+        successEmbed.setDescription(
+          `${message.author}: guild prefix updated to \`${newPrefix}\``,
+        );
 
         message.channel.send({ embeds: [successEmbed] });
 

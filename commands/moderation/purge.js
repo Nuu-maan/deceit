@@ -1,13 +1,17 @@
-const { EmbedBuilder, PermissionsBitField } = require('discord.js');
+const {
+  EmbedBuilder,
+  PermissionsBitField,
+  AllowedMentionsTypes,
+} = require('discord.js');
 const { EMBED_COLOR, DELETE_AFTER } = require('../../constants');
 const { createEmbed } = require('../../helpers/commandInfoEmbed');
 
 const infoEmbed = createEmbed(
   'purge',
-  'Deletes a specified number of messages',
+  'deletes a specified number of messages',
   'clear, p',
   'MANAGE_MESSAGES',
-  'purge <amount>\n,,purge <amount> bots\n,,purge <amount> @mentionuser\n,,purge bots (delete all bots messages)',
+  'purge <amount> filter \nfilters: bots, user, @user',
 );
 
 const errorEmbed = new EmbedBuilder().setColor(EMBED_COLOR);
@@ -49,10 +53,10 @@ module.exports = {
 
     // Check for filter type
     if (filterType && filterType !== 'bots' && !message.mentions.users.size) {
-      errorEmbed.setDescription(
-        'You must mention a valid user to purge their messages.\n```,,purge <amount> @mentionuser```',
-      );
-      return message.reply({ embeds: [errorEmbed] });
+      return message.reply({
+        embeds: [infoEmbed],
+        allowedMentions: { repliedUser: false },
+      });
     }
 
     try {
@@ -72,7 +76,7 @@ module.exports = {
     } catch (error) {
       console.error(error);
       errorEmbed.setDescription(
-        'An error occurred while trying to delete messages.',
+        'an error occurred while trying to delete messages.',
       );
       return message.reply({ embeds: [errorEmbed] });
     }
@@ -84,7 +88,7 @@ async function purgeBots(message, amount) {
   const botMessages = fetched.filter((msg) => msg.author.bot).first(amount);
 
   if (!botMessages.length) {
-    errorEmbed.setDescription('No bot messages found.');
+    errorEmbed.setDescription('no bot messages found.');
     return message.reply({ embeds: [errorEmbed] });
   }
 
@@ -102,13 +106,13 @@ async function purgeUser(message, user, amount) {
     .first(amount);
 
   if (!userMessages.length) {
-    errorEmbed.setDescription(`No messages from \`${user.tag}\` found.`);
+    errorEmbed.setDescription(`no messages from \`${user}\` found.`);
     return message.reply({ embeds: [errorEmbed] });
   }
 
   await message.channel.bulkDelete(userMessages, true);
   successEmbed.setDescription(
-    `\`${userMessages.length}\` messages from \`${user.tag}\` deleted.`,
+    `\`${userMessages.length}\` messages from ${user} deleted.`,
   );
   await sendConfirmation(message, successEmbed);
 }

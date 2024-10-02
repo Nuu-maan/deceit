@@ -85,8 +85,8 @@ client.once(Events.ClientReady, () => {
   client.user.setPresence({
     activities: [
       {
-        name: ',,help',
-        type: ActivityType.Playing,
+        name: '🔗 discord.gg/deceitbot', // Add your emoji and text here
+        type: ActivityType.Custom, // Custom type to show text only
       },
     ],
     status: 'online',
@@ -163,7 +163,7 @@ client.on(Events.MessageCreate, async (message) => {
         const embed = new EmbedBuilder()
           .setColor(EMBED_COLOR)
           .setDescription(
-            `> Prefixes: \`${PREFIX}\` \`${customPrefix}\` Try \`,,help\` for more info `,
+            `prefixes: \`${PREFIX}\` \`${customPrefix}\`. try \`,,help\` for more info`,
           );
 
         const buttonRow = new ActionRowBuilder().addComponents(
